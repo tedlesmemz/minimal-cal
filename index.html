@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Minimal Day Calendar</title>
+  <style>
+    :root{
+      --hide-top:46px;   /* height of the month/header bar to hide */
+      --hide-bottom:40px;/* height of the bottom "+ Google Calendar" area to hide */
+      --scale:1;         /* initial zoom; change if you need bigger text */
+      --bg: #ffffff;     /* overlay bg to match calendar bg */
+      --font-size: 14px; /* fallback font smoothing for overlays */
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .frame-wrap{
+      position:relative;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:var(--bg);
+    }
+
+    iframe.calendar{
+      width:100%;
+      height:100%;
+      border:0;
+      transform-origin: 0 0;
+      transform: scale(var(--scale));
+      /* Prevent iframe from creating its own scrollbars inside small panels:
+         we'll let the outer container scroll if needed. */
+    }
+
+    /* overlays that visually cover top + bottom chrome from the embed */
+    .hide-top, .hide-bottom {
+      position:absolute;
+      left:0;
+      right:0;
+      background:var(--bg);
+      z-index:6;
+      pointer-events: none; /* allow touches/clicks to pass through if needed */
+    }
+
+    .hide-top {
+      top:0;
+      height:var(--hide-top);
+      /* add a small inner gradient to blend with calendar if needed */
+      box-shadow: 0 6px 10px rgba(0,0,0,0.02) inset; 
+    }
+
+    .hide-bottom {
+      bottom:0;
+      height:var(--hide-bottom);
+    }
+
+    /* optional small padding to make things snug */
+    .gap-fix {
+      position:absolute;
+      top:var(--hide-top);
+      bottom:var(--hide-bottom);
+      left:0;
+      right:0;
+      z-index:5;
+      pointer-events:none;
+    }
+
+    /* small responsive tweak: if the panel is tall, increase scale down slightly */
+    @media (min-aspect-ratio: 3/2) {
+      :root{ --scale:1; }
+    }
+
+    /* If you want to change zoom from the URL, JS below reads ?scale=1.2 */
+  </style>
+</head>
+<body>
+  <div class="frame-wrap">
+    <!-- Top overlay hides the month header -->
+    <div class="hide-top" aria-hidden="true"></div>
+
+    <!-- The iframe: make sure src uses your calendar ID (email) -->
+    <iframe
+      id="calframe"
+      class="calendar"
+      scrolling="no"
+      src="https://calendar.google.com/calendar/embed?src=teddycapobianco%40gmail.com&ctz=America%2FNew_York&mode=DAY&showTitle=0&showTabs=0&showNav=0&showPrint=0&showCalendars=0&showTz=0">
+    </iframe>
+
+    <!-- Gap fix overlay (purely visual) -->
+    <div class="gap-fix" aria-hidden="true"></div>
+
+    <!-- Bottom overlay hides the + Google Calendar footer -->
+    <div class="hide-bottom" aria-hidden="true"></div>
+  </div>
+
+<script>
+  // Allow adjusting scale via URL param, e.g. ?scale=1.15  (useful for Touch Portal)
+  function getParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+  }
+  const s = parseFloat(getParam('scale'));
+  if (!isNaN(s) && s > 0 && s < 3) {
+    document.documentElement.style.setProperty('--scale', s.toFixed(2));
+  }
+  // Small tweak: if user passes top/bottom heights via URL, allow that too
+  const ht = parseInt(getParam('top'));
+  const hb = parseInt(getParam('bottom'));
+  if (!isNaN(ht) && ht>=0 && ht<=200) document.documentElement.style.setProperty('--hide-top', ht+'px');
+  if (!isNaN(hb) && hb>=0 && hb<=200) document.documentElement.style.setProperty('--hide-bottom', hb+'px');
+
+  // Optional: if the iframe loads and has internal scrollbars we can increase outer overflow
+  window.addEventListener('message', e=>{
+    // no cross-origin access here; just placeholder if you host a same-origin iframe in future
+  });
+</script>
+</body>
+</html>
