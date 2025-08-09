@@ -60,6 +60,7 @@
     }
 
     function formatTime(dt) {
+      if (!dt) return '';
       const date = new Date(dt);
       return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
@@ -69,14 +70,28 @@
       .then(text => {
         const all = parseICal(text);
         const now = new Date();
-        const todayYMD = now.toISOString().substr(0, 10);
+
         const todayEvents = all.filter(e => {
           if (!e['DTSTART']) return false;
-          const d = e['DTSTART'];
-          const dt = d.length === 8
-            ? (d.substr(0,4) + '-' + d.substr(4,2) + '-' + d.substr(6,2))
-            : d.substr(0,10);
-          return dt === todayYMD;
+          let dtString = e['DTSTART'];
+          let eventDate;
+
+          if (/^\d{8}T\d{6}Z?$/.test(dtString)) {
+            if (dtString.endsWith('Z')) {
+              eventDate = new Date(dtString);
+            } else {
+              const isoStr = dtString.slice(0,4) + '-' + dtString.slice(4,6) + '-' + dtString.slice(6,8) + 'T' + dtString.slice(9,11) + ':' + dtString.slice(11,13) + ':' + dtString.slice(13,15);
+              eventDate = new Date(isoStr);
+            }
+          } else if (/^\d{8}$/.test(dtString)) {
+            eventDate = new Date(dtString.slice(0,4) + '-' + dtString.slice(4,6) + '-' + dtString.slice(6,8));
+          } else {
+            return false;
+          }
+
+          return eventDate.getFullYear() === now.getFullYear()
+            && eventDate.getMonth() === now.getMonth()
+            && eventDate.getDate() === now.getDate();
         });
 
         todayEvents.sort((a, b) => (a.DTSTART > b.DTSTART ? 1 : -1));
