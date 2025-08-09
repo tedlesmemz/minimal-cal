@@ -37,6 +37,9 @@
     // Your public ICS URL:
     const ICS_URL = 'https://calendar.google.com/calendar/ical/teddycapobianco%40gmail.com/public/basic.ics';
 
+    // Use CORS proxy to bypass CORS restrictions
+    const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(ICS_URL);
+
     function parseICal(text) {
       const lines = text.split(/\r?\n/);
       const events = [];
@@ -61,7 +64,7 @@
       return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
 
-    fetch(ICS_URL)
+    fetch(PROXY_URL)
       .then(res => res.text())
       .then(text => {
         const all = parseICal(text);
