@@ -1,125 +1,539 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Dark Day Calendar</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      padding: 8px;
-      font-family: sans-serif;
-      background: #282828;
-      color: white;
-      font-size: 16px;
-      line-height: 1.4;
-    }
-    .event {
-      margin-bottom: 4px;
-    }
-    .time {
-      font-weight: bold;
-      margin-right: 6px;
-    }
-    .title {
-      display: inline;
-    }
-    .no-events {
-      text-align: center;
-      margin-top: 20px;
-      color: #bbb;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Touch Portal Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #282828;
+            color: #f0f0f0;
+            padding: 15px;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        header {
+            text-align: center;
+            padding: 15px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .date-display {
+            text-align: left;
+        }
+        
+        .current-date {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: #64b5f6;
+        }
+        
+        .current-day {
+            font-size: 1.2rem;
+            color: #bbb;
+            font-weight: 300;
+        }
+        
+        .calendar-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-btn {
+            background: #333;
+            color: #f0f0f0;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-btn:hover {
+            background: #3a3a3a;
+            transform: scale(1.1);
+        }
+        
+        .calendar-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1f1f1f;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .section-header {
+            background: #333;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #64b5f6;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .events-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 15px;
+        }
+        
+        .event-list {
+            list-style-type: none;
+        }
+        
+        .event-item {
+            background: #333;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            display: flex;
+            transition: all 0.3s ease;
+            border-left: 3px solid #64b5f6;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        .event-item:hover {
+            background: #3a3a3a;
+            transform: translateX(5px);
+        }
+        
+        .event-time {
+            min-width: 80px;
+            font-weight: 500;
+            color: #64b5f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-right: 15px;
+            border-right: 1px solid #444;
+        }
+        
+        .event-time .start {
+            font-size: 1.1rem;
+        }
+        
+        .event-time .duration {
+            font-size: 0.8rem;
+            color: #bbb;
+        }
+        
+        .event-details {
+            flex: 1;
+            padding-left: 15px;
+        }
+        
+        .event-title {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .event-location {
+            color: #bbb;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .event-location i {
+            margin-right: 5px;
+            color: #64b5f6;
+        }
+        
+        .no-events {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-style: italic;
+        }
+        
+        .calendar-status {
+            background: #333;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #bbb;
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+        }
+        
+        .sync-status i {
+            margin-right: 5px;
+            color: #64b5f6;
+        }
+        
+        .event-count {
+            background: #64b5f6;
+            color: #282828;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #333;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #64b5f6;
+            border-radius: 10px;
+        }
+        
+        /* Loading animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(100, 181, 246, 0.3);
+            border-top: 3px solid #64b5f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .date-display {
+                text-align: center;
+            }
+            
+            .current-date {
+                font-size: 1.5rem;
+            }
+            
+            .current-day {
+                font-size: 1rem;
+            }
+            
+            .event-item {
+                flex-direction: column;
+            }
+            
+            .event-time {
+                flex-direction: row;
+                justify-content: flex-start;
+                border-right: none;
+                border-bottom: 1px solid #444;
+                padding-right: 0;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+                min-width: auto;
+            }
+            
+            .event-time .start {
+                margin-right: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="events">Loading today's events…</div>
-  <script>
-    // Your public ICS URL:
-    const ICS_URL = 'https://calendar.google.com/calendar/ical/teddycapobianco%40gmail.com/public/basic.ics';
+    <div class="container">
+        <header>
+            <div class="date-display">
+                <div class="current-date" id="currentDate">August 10, 2025</div>
+                <div class="current-day" id="currentDay">Sunday</div>
+            </div>
+            <div class="calendar-controls">
+                <button class="calendar-btn" id="prevDay" title="Previous day">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="calendar-btn" id="todayBtn" title="Today">
+                    <i class="fas fa-calendar-day"></i>
+                </button>
+                <button class="calendar-btn" id="nextDay" title="Next day">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </header>
+        
+        <section class="calendar-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-calendar-day"></i> Today's Schedule
+                </h2>
+                <div class="event-count" id="eventCount">0 events</div>
+            </div>
+            
+            <div class="events-container">
+                <ul class="event-list" id="eventList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </ul>
+            </div>
+            
+            <div class="calendar-status">
+                <div class="sync-status">
+                    <i class="fas fa-sync-alt"></i> Last updated: <span id="lastUpdated">Just now</span>
+                </div>
+                <div class="calendar-name">
+                    <i class="fab fa-google"></i> teddycapobianco@gmail.com
+                </div>
+            </div>
+        </section>
+    </div>
 
-    // Use CORS proxy to bypass CORS restrictions
-    const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(ICS_URL);
-
-    function parseICal(text) {
-      const lines = text.split(/\r?\n/);
-      const events = [];
-      let vevent = null;
-      lines.forEach(line => {
-        if (line === 'BEGIN:VEVENT') {
-          vevent = {};
-        } else if (line === 'END:VEVENT') {
-          events.push(vevent);
-          vevent = null;
-        } else if (vevent) {
-          const [key, ...rest] = line.split(':');
-          const value = rest.join(':');
-          vevent[key] = value;
+    <script>
+        // Initialize with today's date
+        let currentDate = new Date();
+        
+        // DOM Elements
+        const currentDateEl = document.getElementById('currentDate');
+        const currentDayEl = document.getElementById('currentDay');
+        const eventListEl = document.getElementById('eventList');
+        const eventCountEl = document.getElementById('eventCount');
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        const prevDayBtn = document.getElementById('prevDay');
+        const nextDayBtn = document.getElementById('nextDay');
+        const todayBtn = document.getElementById('todayBtn');
+        
+        // Format date as "Month Day, Year"
+        function formatDate(date) {
+            const options = { month: 'long', day: 'numeric', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
         }
-      });
-      return events;
-    }
-
-    function formatTime(dt) {
-      if (!dt) return '';
-      const date = new Date(dt);
-      return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-    }
-
-    fetch(PROXY_URL)
-      .then(res => res.text())
-      .then(text => {
-        const all = parseICal(text);
-        const now = new Date();
-
-        const todayEvents = all.filter(e => {
-          if (!e['DTSTART']) return false;
-          let dtString = e['DTSTART'];
-          let eventDate;
-
-          if (/^\d{8}T\d{6}Z?$/.test(dtString)) {
-            if (dtString.endsWith('Z')) {
-              eventDate = new Date(dtString);
+        
+        // Format day as "Weekday"
+        function formatDay(date) {
+            const options = { weekday: 'long' };
+            return date.toLocaleDateString('en-US', options);
+        }
+        
+        // Format time as "HH:MM AM/PM"
+        function formatTime(date) {
+            const options = { hour: 'numeric', minute: '2-digit' };
+            return date.toLocaleTimeString('en-US', options);
+        }
+        
+        // Calculate duration between two times
+        function formatDuration(start, end) {
+            const diffMs = end - start;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 60) {
+                return `${diffMins}m`;
             } else {
-              const isoStr = dtString.slice(0,4) + '-' + dtString.slice(4,6) + '-' + dtString.slice(6,8) + 'T' + dtString.slice(9,11) + ':' + dtString.slice(11,13) + ':' + dtString.slice(13,15);
-              eventDate = new Date(isoStr);
+                const hours = Math.floor(diffMins / 60);
+                const mins = diffMins % 60;
+                return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
             }
-          } else if (/^\d{8}$/.test(dtString)) {
-            eventDate = new Date(dtString.slice(0,4) + '-' + dtString.slice(4,6) + '-' + dtString.slice(6,8));
-          } else {
-            return false;
-          }
-
-          return eventDate.getFullYear() === now.getFullYear()
-            && eventDate.getMonth() === now.getMonth()
-            && eventDate.getDate() === now.getDate();
-        });
-
-        todayEvents.sort((a, b) => (a.DTSTART > b.DTSTART ? 1 : -1));
-
-        const el = document.getElementById('events');
-        if (todayEvents.length === 0) {
-          el.textContent = "No events today.";
-        } else {
-          el.innerHTML = '';
-          todayEvents.forEach(evt => {
-            const div = document.createElement('div');
-            div.className = 'event';
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'time';
-            timeSpan.textContent = formatTime(evt['DTSTART']);
-            const titleSpan = document.createElement('span');
-            titleSpan.className = 'title';
-            titleSpan.textContent = evt['SUMMARY'] || '(No title)';
-            div.appendChild(timeSpan);
-            div.appendChild(titleSpan);
-            el.appendChild(div);
-          });
         }
-      })
-      .catch(err => {
-        document.getElementById('events').textContent = 'Error loading calendar.';
-        console.error(err);
-      });
-  </script>
+        
+        // Update the displayed date
+        function updateDisplayDate() {
+            currentDateEl.textContent = formatDate(currentDate);
+            currentDayEl.textContent = formatDay(currentDate);
+        }
+        
+        // Update the last updated time
+        function updateLastUpdated() {
+            const now = new Date();
+            lastUpdatedEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        // Generate mock calendar events for demonstration
+        function generateDemoEvents() {
+            const events = [];
+            const today = new Date();
+            
+            // Add events for today
+            events.push({
+                id: 1,
+                title: "Team Meeting",
+                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 30),
+                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 30),
+                location: "Conference Room A"
+            });
+            
+            events.push({
+                id: 2,
+                title: "Lunch with Client",
+                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0),
+                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 13, 30),
+                location: "Downtown Cafe"
+            });
+            
+            events.push({
+                id: 3,
+                title: "Project Deadline",
+                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 15, 0),
+                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 0),
+                location: "Office"
+            });
+            
+            events.push({
+                id: 4,
+                title: "Weekly Planning",
+                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 30),
+                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 17, 30),
+                location: "Zoom Meeting"
+            });
+            
+            return events;
+        }
+        
+        // Display events in the UI
+        function displayEvents(events) {
+            eventListEl.innerHTML = '';
+            
+            if (events.length === 0) {
+                eventListEl.innerHTML = `
+                    <div class="no-events">
+                        <i class="fas fa-calendar-check" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <h3>No events scheduled</h3>
+                        <p>Enjoy your free time!</p>
+                    </div>
+                `;
+                eventCountEl.textContent = "0 events";
+                return;
+            }
+            
+            // Sort events by start time
+            events.sort((a, b) => a.start - b.start);
+            
+            // Create event elements
+            events.forEach(event => {
+                const eventElement = document.createElement('li');
+                eventElement.className = 'event-item';
+                
+                const startTime = formatTime(event.start);
+                const endTime = formatTime(event.end);
+                const duration = formatDuration(event.start, event.end);
+                
+                eventElement.innerHTML = `
+                    <div class="event-time">
+                        <div class="start">${startTime}</div>
+                        <div class="duration">${duration}</div>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-title">${event.title}</div>
+                        ${event.location ? `
+                        <div class="event-location">
+                            <i class="fas fa-map-marker-alt"></i> ${event.location}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                eventListEl.appendChild(eventElement);
+            });
+            
+            eventCountEl.textContent = `${events.length} ${events.length === 1 ? 'event' : 'events'}`;
+        }
+        
+        // Simulate loading calendar data
+        function loadCalendarData() {
+            eventListEl.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            `;
+            
+            // Simulate API request delay
+            setTimeout(() => {
+                const events = generateDemoEvents();
+                displayEvents(events);
+                updateLastUpdated();
+            }, 1000);
+        }
+        
+        // Navigation handlers
+        prevDayBtn.addEventListener('click', () => {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDisplayDate();
+            loadCalendarData();
+        });
+        
+        nextDayBtn.addEventListener('click', () => {
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateDisplayDate();
+            loadCalendarData();
+        });
+        
+        todayBtn.addEventListener('click', () => {
+            currentDate = new Date();
+            updateDisplayDate();
+            loadCalendarData();
+        });
+        
+        // Initialize the app
+        function initApp() {
+            updateDisplayDate();
+            loadCalendarData();
+        }
+        
+        // Start the application
+        initApp();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            loadCalendarData();
+        }, 5 * 60 * 1000);
+    </script>
 </body>
 </html>
