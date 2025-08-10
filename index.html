@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Touch Portal Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/ical.js@1.4.0/ical.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -152,7 +153,7 @@
             font-size: 1.1rem;
         }
         
-        .event-time .duration {
+        .event-time .end {
             font-size: 0.8rem;
             color: #bbb;
         }
@@ -168,11 +169,18 @@
             font-weight: 500;
         }
         
+        .event-description {
+            color: #bbb;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
         .event-location {
             color: #bbb;
             font-size: 0.9rem;
             display: flex;
             align-items: center;
+            margin-top: 8px;
         }
         
         .event-location i {
@@ -252,6 +260,15 @@
             100% { transform: rotate(360deg); }
         }
         
+        .error-message {
+            background: #ff6b6b;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px;
+            text-align: center;
+        }
+        
         @media (max-width: 600px) {
             header {
                 flex-direction: column;
@@ -320,6 +337,7 @@
             </div>
             
             <div class="events-container">
+                <div id="errorContainer"></div>
                 <ul class="event-list" id="eventList">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -339,6 +357,9 @@
     </div>
 
     <script>
+        // iCal URL for your Google Calendar
+        const ICAL_URL = "https://calendar.google.com/calendar/ical/teddycapobianco%40gmail.com/public/basic.ics";
+        
         // Initialize with today's date
         let currentDate = new Date();
         
@@ -351,6 +372,7 @@
         const prevDayBtn = document.getElementById('prevDay');
         const nextDayBtn = document.getElementById('nextDay');
         const todayBtn = document.getElementById('todayBtn');
+        const errorContainer = document.getElementById('errorContainer');
         
         // Format date as "Month Day, Year"
         function formatDate(date) {
@@ -366,12 +388,16 @@
         
         // Format time as "HH:MM AM/PM"
         function formatTime(date) {
+            if (!date || isNaN(date)) return "All Day";
+            
             const options = { hour: 'numeric', minute: '2-digit' };
             return date.toLocaleTimeString('en-US', options);
         }
         
         // Calculate duration between two times
         function formatDuration(start, end) {
+            if (!start || !end || isNaN(start) || isNaN(end)) return "";
+            
             const diffMs = end - start;
             const diffMins = Math.floor(diffMs / 60000);
             
@@ -396,45 +422,81 @@
             lastUpdatedEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
         
-        // Generate mock calendar events for demonstration
-        function generateDemoEvents() {
-            const events = [];
-            const today = new Date();
-            
-            // Add events for today
-            events.push({
-                id: 1,
-                title: "Team Meeting",
-                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 30),
-                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 30),
-                location: "Conference Room A"
+        // Show error message
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+        
+        // Clear error message
+        function clearError() {
+            errorContainer.innerHTML = '';
+        }
+        
+        // Parse iCal data
+        async function parseICalData(icalData) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const jcalData = ICAL.parse(icalData);
+                    const comp = new ICAL.Component(jcalData);
+                    const events = comp.getAllSubcomponents('vevent');
+                    
+                    const parsedEvents = events.map(event => {
+                        const icalEvent = new ICAL.Event(event);
+                        return {
+                            start: icalEvent.startDate ? icalEvent.startDate.toJSDate() : null,
+                            end: icalEvent.endDate ? icalEvent.endDate.toJSDate() : null,
+                            summary: icalEvent.summary,
+                            description: icalEvent.description,
+                            location: icalEvent.location
+                        };
+                    });
+                    
+                    resolve(parsedEvents);
+                } catch (error) {
+                    reject(error);
+                }
             });
+        }
+        
+        // Fetch calendar events from iCal URL
+        async function fetchCalendarEvents() {
+            try {
+                clearError();
+                eventListEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                
+                const response = await fetch(ICAL_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch calendar data: ${response.status} ${response.statusText}`);
+                }
+                
+                const icalData = await response.text();
+                const events = await parseICalData(icalData);
+                
+                return events;
+            } catch (error) {
+                console.error("Error fetching calendar data:", error);
+                showError(`Error: ${error.message}. Please check your internet connection.`);
+                return [];
+            }
+        }
+        
+        // Filter events for the selected date
+        function filterEventsForDate(events, date) {
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
             
-            events.push({
-                id: 2,
-                title: "Lunch with Client",
-                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0),
-                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 13, 30),
-                location: "Downtown Cafe"
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            
+            return events.filter(event => {
+                const eventStart = event.start;
+                const eventEnd = event.end;
+                
+                // Check if event overlaps with the selected day
+                return (eventStart <= endOfDay && eventEnd >= startOfDay) || 
+                       (eventStart >= startOfDay && eventStart <= endOfDay);
             });
-            
-            events.push({
-                id: 3,
-                title: "Project Deadline",
-                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 15, 0),
-                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 0),
-                location: "Office"
-            });
-            
-            events.push({
-                id: 4,
-                title: "Weekly Planning",
-                start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 30),
-                end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 17, 30),
-                location: "Zoom Meeting"
-            });
-            
-            return events;
         }
         
         // Display events in the UI
@@ -454,7 +516,7 @@
             }
             
             // Sort events by start time
-            events.sort((a, b) => a.start - b.start);
+            events.sort((a, b) => (a.start || 0) - (b.start || 0));
             
             // Create event elements
             events.forEach(event => {
@@ -463,15 +525,17 @@
                 
                 const startTime = formatTime(event.start);
                 const endTime = formatTime(event.end);
-                const duration = formatDuration(event.start, event.end);
+                const duration = event.start && event.end ? formatDuration(event.start, event.end) : "";
                 
                 eventElement.innerHTML = `
                     <div class="event-time">
                         <div class="start">${startTime}</div>
-                        <div class="duration">${duration}</div>
+                        ${endTime && endTime !== startTime ? `<div class="end">${endTime}</div>` : ''}
+                        ${duration ? `<div class="duration">${duration}</div>` : ''}
                     </div>
                     <div class="event-details">
-                        <div class="event-title">${event.title}</div>
+                        <div class="event-title">${event.summary || 'Untitled Event'}</div>
+                        ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
                         ${event.location ? `
                         <div class="event-location">
                             <i class="fas fa-map-marker-alt"></i> ${event.location}
@@ -486,54 +550,51 @@
             eventCountEl.textContent = `${events.length} ${events.length === 1 ? 'event' : 'events'}`;
         }
         
-        // Simulate loading calendar data
-        function loadCalendarData() {
-            eventListEl.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            `;
-            
-            // Simulate API request delay
-            setTimeout(() => {
-                const events = generateDemoEvents();
-                displayEvents(events);
+        // Load and display events for the selected date
+        async function loadEventsForDate(date) {
+            try {
+                const allEvents = await fetchCalendarEvents();
+                const filteredEvents = filterEventsForDate(allEvents, date);
+                displayEvents(filteredEvents);
                 updateLastUpdated();
-            }, 1000);
+            } catch (error) {
+                console.error("Error loading events:", error);
+                showError(`Error loading events: ${error.message}`);
+            }
         }
         
         // Navigation handlers
         prevDayBtn.addEventListener('click', () => {
             currentDate.setDate(currentDate.getDate() - 1);
             updateDisplayDate();
-            loadCalendarData();
+            loadEventsForDate(currentDate);
         });
         
         nextDayBtn.addEventListener('click', () => {
             currentDate.setDate(currentDate.getDate() + 1);
             updateDisplayDate();
-            loadCalendarData();
+            loadEventsForDate(currentDate);
         });
         
         todayBtn.addEventListener('click', () => {
             currentDate = new Date();
             updateDisplayDate();
-            loadCalendarData();
+            loadEventsForDate(currentDate);
         });
         
         // Initialize the app
         function initApp() {
             updateDisplayDate();
-            loadCalendarData();
+            loadEventsForDate(currentDate);
+            
+            // Auto-refresh every 15 minutes
+            setInterval(() => {
+                loadEventsForDate(currentDate);
+            }, 15 * 60 * 1000);
         }
         
         // Start the application
         initApp();
-        
-        // Auto-refresh every 5 minutes
-        setInterval(() => {
-            loadCalendarData();
-        }, 5 * 60 * 1000);
     </script>
 </body>
 </html>
