@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Touch Portal Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/ical.js@1.4.0/ical.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -17,104 +16,70 @@
         body {
             background-color: #282828;
             color: #f0f0f0;
-            padding: 15px;
             min-height: 100vh;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.5s ease;
         }
         
         .container {
             max-width: 800px;
-            margin: 0 auto;
+            width: 95%;
+            height: 95vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-        }
-        
-        header {
-            text-align: center;
-            padding: 15px 0;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #444;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .date-display {
-            text-align: left;
-        }
-        
-        .current-date {
-            font-size: 1.8rem;
-            font-weight: 300;
-            letter-spacing: 1px;
-            color: #64b5f6;
-        }
-        
-        .current-day {
-            font-size: 1.2rem;
-            color: #bbb;
-            font-weight: 300;
-        }
-        
-        .calendar-controls {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .calendar-btn {
-            background: #333;
-            color: #f0f0f0;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .calendar-btn:hover {
-            background: #3a3a3a;
-            transform: scale(1.1);
         }
         
         .calendar-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #1f1f1f;
-            border-radius: 10px;
+            background: rgba(30, 30, 30, 0.85);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .section-header {
-            background: #333;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .date-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.5s ease;
         }
         
-        .section-title {
-            font-size: 1.3rem;
-            color: #64b5f6;
-            display: flex;
-            align-items: center;
+        .current-date {
+            font-size: 2.8rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            transition: color 0.5s ease;
         }
         
-        .section-title i {
-            margin-right: 10px;
-            font-size: 1.2rem;
+        .current-day {
+            font-size: 2rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            transition: color 0.5s ease;
+        }
+        
+        .current-time {
+            font-size: 3.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin: 15px 0;
+            transition: color 0.5s ease;
         }
         
         .events-container {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 15px;
+            padding: 20px;
         }
         
         .event-list {
@@ -122,137 +87,120 @@
         }
         
         .event-item {
-            background: #333;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 8px;
+            background: rgba(40, 40, 40, 0.7);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-radius: 12px;
             display: flex;
             transition: all 0.3s ease;
-            border-left: 3px solid #64b5f6;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-left: 5px solid #64b5f6;
+            backdrop-filter: blur(5px);
         }
         
         .event-item:hover {
-            background: #3a3a3a;
-            transform: translateX(5px);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         }
         
         .event-time {
-            min-width: 80px;
+            min-width: 100px;
             font-weight: 500;
-            color: #64b5f6;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding-right: 15px;
-            border-right: 1px solid #444;
+            padding-right: 20px;
+            border-right: 1px solid rgba(255,255,255,0.1);
         }
         
         .event-time .start {
-            font-size: 1.1rem;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
         }
         
         .event-time .end {
-            font-size: 0.8rem;
-            color: #bbb;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
         }
         
         .event-details {
             flex: 1;
-            padding-left: 15px;
+            padding-left: 20px;
         }
         
         .event-title {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
             font-weight: 500;
         }
         
         .event-description {
-            color: #bbb;
-            font-size: 0.9rem;
-            margin-top: 5px;
+            color: rgba(255,255,255,0.7);
+            font-size: 1rem;
+            margin-top: 10px;
+            line-height: 1.5;
         }
         
         .event-location {
-            color: #bbb;
-            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            margin-top: 8px;
+            margin-top: 12px;
         }
         
         .event-location i {
-            margin-right: 5px;
-            color: #64b5f6;
+            margin-right: 8px;
         }
         
         .no-events {
             text-align: center;
-            padding: 40px 20px;
-            color: #888;
+            padding: 60px 20px;
+            color: rgba(255,255,255,0.5);
             font-style: italic;
+            font-size: 1.2rem;
         }
         
-        .calendar-status {
-            background: #333;
-            padding: 10px 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            color: #bbb;
-        }
-        
-        .sync-status {
-            display: flex;
-            align-items: center;
-        }
-        
-        .sync-status i {
-            margin-right: 5px;
-            color: #64b5f6;
-        }
-        
-        .event-count {
-            background: #64b5f6;
-            color: #282828;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
+        .no-events i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
         }
         
         /* Scrollbar styling */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
         
         ::-webkit-scrollbar-track {
-            background: #333;
+            background: rgba(40, 40, 40, 0.5);
             border-radius: 10px;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #64b5f6;
+            background: rgba(100, 181, 246, 0.5);
             border-radius: 10px;
+            transition: background 0.5s ease;
         }
         
         /* Loading animation */
         .loading {
             display: flex;
             justify-content: center;
-            padding: 30px;
+            padding: 50px;
+            flex-direction: column;
+            align-items: center;
         }
         
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(100, 181, 246, 0.3);
-            border-top: 3px solid #64b5f6;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(100, 181, 246, 0.3);
+            border-top: 4px solid rgba(100, 181, 246, 1);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
         
         @keyframes spin {
@@ -260,98 +208,97 @@
             100% { transform: rotate(360deg); }
         }
         
+        .status-text {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
         .error-message {
-            background: #ff6b6b;
+            background: rgba(255, 107, 107, 0.3);
             color: #fff;
             padding: 15px;
             border-radius: 8px;
             margin: 15px;
             text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .retry-btn {
+            background: rgba(100, 181, 246, 0.7);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .retry-btn:hover {
+            background: rgba(100, 181, 246, 1);
+            transform: translateY(-2px);
         }
         
         @media (max-width: 600px) {
-            header {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .date-display {
-                text-align: center;
+            .date-header {
+                padding: 20px 15px;
             }
             
             .current-date {
-                font-size: 1.5rem;
+                font-size: 2rem;
             }
             
             .current-day {
-                font-size: 1rem;
+                font-size: 1.5rem;
+            }
+            
+            .current-time {
+                font-size: 2.5rem;
             }
             
             .event-item {
                 flex-direction: column;
+                padding: 15px;
             }
             
             .event-time {
                 flex-direction: row;
-                justify-content: flex-start;
+                justify-content: center;
                 border-right: none;
-                border-bottom: 1px solid #444;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
                 padding-right: 0;
-                padding-bottom: 10px;
-                margin-bottom: 10px;
+                padding-bottom: 15px;
+                margin-bottom: 15px;
                 min-width: auto;
             }
             
             .event-time .start {
-                margin-right: 15px;
+                margin-right: 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="date-display">
+        <section class="calendar-section">
+            <div class="date-header" id="dateHeader">
                 <div class="current-date" id="currentDate">August 10, 2025</div>
                 <div class="current-day" id="currentDay">Sunday</div>
-            </div>
-            <div class="calendar-controls">
-                <button class="calendar-btn" id="prevDay" title="Previous day">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="calendar-btn" id="todayBtn" title="Today">
-                    <i class="fas fa-calendar-day"></i>
-                </button>
-                <button class="calendar-btn" id="nextDay" title="Next day">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </header>
-        
-        <section class="calendar-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-calendar-day"></i> Today's Schedule
-                </h2>
-                <div class="event-count" id="eventCount">0 events</div>
+                <div class="current-time" id="currentTime">10:30 AM</div>
             </div>
             
             <div class="events-container">
                 <div id="errorContainer"></div>
                 <ul class="event-list" id="eventList">
-                    <div class="loading">
+                    <div class="loading" id="loadingIndicator">
                         <div class="spinner"></div>
+                        <div class="status-text">Loading your calendar events...</div>
                     </div>
                 </ul>
-            </div>
-            
-            <div class="calendar-status">
-                <div class="sync-status">
-                    <i class="fas fa-sync-alt"></i> Last updated: <span id="lastUpdated">Just now</span>
-                </div>
-                <div class="calendar-name">
-                    <i class="fab fa-google"></i> teddycapobianco@gmail.com
-                </div>
             </div>
         </section>
     </div>
@@ -360,19 +307,36 @@
         // iCal URL for your Google Calendar
         const ICAL_URL = "https://calendar.google.com/calendar/ical/teddycapobianco%40gmail.com/public/basic.ics";
         
+        // Proxy server to bypass CORS issues
+        const PROXY_URL = "https://api.allorigins.win/raw?url=";
+        
+        // Event colors in sequence
+        const EVENT_COLORS = [
+            "#a4bdfc", // Lavender
+            "#7ae7bf", // Sage
+            "#dbadff", // Grape
+            "#ff887c", // Flamingo
+            "#fbd75b", // Banana
+            "#ffb878", // Tangerine
+            "#46d6db", // Peacock
+            "#e1e1e1", // Graphite
+            "#5484ed", // Blueberry
+            "#51b749", // Basil
+            "#dc2127"  // Tomato
+        ];
+        
         // Initialize with today's date
         let currentDate = new Date();
+        let dailyEvents = [];
         
         // DOM Elements
         const currentDateEl = document.getElementById('currentDate');
         const currentDayEl = document.getElementById('currentDay');
+        const currentTimeEl = document.getElementById('currentTime');
         const eventListEl = document.getElementById('eventList');
-        const eventCountEl = document.getElementById('eventCount');
-        const lastUpdatedEl = document.getElementById('lastUpdated');
-        const prevDayBtn = document.getElementById('prevDay');
-        const nextDayBtn = document.getElementById('nextDay');
-        const todayBtn = document.getElementById('todayBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
         const errorContainer = document.getElementById('errorContainer');
+        const dateHeader = document.getElementById('dateHeader');
         
         // Format date as "Month Day, Year"
         function formatDate(date) {
@@ -388,96 +352,167 @@
         
         // Format time as "HH:MM AM/PM"
         function formatTime(date) {
-            if (!date || isNaN(date)) return "All Day";
-            
             const options = { hour: 'numeric', minute: '2-digit' };
             return date.toLocaleTimeString('en-US', options);
         }
         
-        // Calculate duration between two times
-        function formatDuration(start, end) {
-            if (!start || !end || isNaN(start) || isNaN(end)) return "";
+        // Update the displayed date and time
+        function updateDateTime() {
+            const now = new Date();
+            currentDateEl.textContent = formatDate(now);
+            currentDayEl.textContent = formatDay(now);
+            currentTimeEl.textContent = formatTime(now);
             
-            const diffMs = end - start;
-            const diffMins = Math.floor(diffMs / 60000);
+            // Check for current event
+            updateCurrentEvent(now);
+        }
+        
+        // Check for current event and update colors
+        function updateCurrentEvent(now) {
+            let currentEvent = null;
             
-            if (diffMins < 60) {
-                return `${diffMins}m`;
+            // Find the event that's currently happening
+            for (const event of dailyEvents) {
+                if (event.start <= now && now < event.end) {
+                    currentEvent = event;
+                    break;
+                }
+            }
+            
+            if (currentEvent) {
+                // Apply event color to header elements
+                const color = currentEvent.color;
+                
+                currentDateEl.style.color = color;
+                currentDayEl.style.color = color;
+                currentTimeEl.style.color = color;
+                
+                // Apply subtle background effect
+                dateHeader.style.background = `rgba(${hexToRgb(color)}, 0.1)`;
+                dateHeader.style.borderBottom = `1px solid ${color}`;
+                
+                // Apply color to scrollbar
+                document.documentElement.style.setProperty('--scrollbar-thumb-color', color);
             } else {
-                const hours = Math.floor(diffMins / 60);
-                const mins = diffMins % 60;
-                return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+                // Reset to default colors
+                const defaultColor = "#64b5f6";
+                
+                currentDateEl.style.color = defaultColor;
+                currentDayEl.style.color = "#bbb";
+                currentTimeEl.style.color = defaultColor;
+                
+                // Reset background
+                dateHeader.style.background = "rgba(30, 30, 30, 0.85)";
+                dateHeader.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+                
+                // Reset scrollbar
+                document.documentElement.style.setProperty('--scrollbar-thumb-color', 'rgba(100, 181, 246, 0.5)');
             }
         }
         
-        // Update the displayed date
-        function updateDisplayDate() {
-            currentDateEl.textContent = formatDate(currentDate);
-            currentDayEl.textContent = formatDay(currentDate);
-        }
-        
-        // Update the last updated time
-        function updateLastUpdated() {
-            const now = new Date();
-            lastUpdatedEl.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        // Show error message
-        function showError(message) {
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-        }
-        
-        // Clear error message
-        function clearError() {
-            errorContainer.innerHTML = '';
+        // Convert hex color to RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? 
+                `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+                "100, 181, 246";
         }
         
         // Parse iCal data
-        async function parseICalData(icalData) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const jcalData = ICAL.parse(icalData);
-                    const comp = new ICAL.Component(jcalData);
-                    const events = comp.getAllSubcomponents('vevent');
+        function parseICalData(icalData) {
+            try {
+                const events = [];
+                const lines = icalData.split('\n');
+                
+                let currentEvent = null;
+                let inEvent = false;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
                     
-                    const parsedEvents = events.map(event => {
-                        const icalEvent = new ICAL.Event(event);
-                        return {
-                            start: icalEvent.startDate ? icalEvent.startDate.toJSDate() : null,
-                            end: icalEvent.endDate ? icalEvent.endDate.toJSDate() : null,
-                            summary: icalEvent.summary,
-                            description: icalEvent.description,
-                            location: icalEvent.location
-                        };
-                    });
-                    
-                    resolve(parsedEvents);
-                } catch (error) {
-                    reject(error);
+                    if (line === 'BEGIN:VEVENT') {
+                        inEvent = true;
+                        currentEvent = {};
+                    } else if (line === 'END:VEVENT') {
+                        inEvent = false;
+                        if (currentEvent) {
+                            events.push(currentEvent);
+                        }
+                        currentEvent = null;
+                    } else if (inEvent && currentEvent) {
+                        const [key, value] = line.split(':');
+                        if (key && value) {
+                            const cleanKey = key.split(';')[0];
+                            
+                            if (cleanKey === 'DTSTART') {
+                                currentEvent.start = parseICalDate(value);
+                            } else if (cleanKey === 'DTEND') {
+                                currentEvent.end = parseICalDate(value);
+                            } else if (cleanKey === 'SUMMARY') {
+                                currentEvent.title = value;
+                            } else if (cleanKey === 'DESCRIPTION') {
+                                currentEvent.description = value;
+                            } else if (cleanKey === 'LOCATION') {
+                                currentEvent.location = value;
+                            }
+                        }
+                    }
                 }
-            });
+                
+                return events;
+            } catch (error) {
+                console.error("Error parsing iCal data:", error);
+                throw new Error("Failed to parse calendar data");
+            }
         }
         
-        // Fetch calendar events from iCal URL
+        // Parse iCal date string
+        function parseICalDate(dateString) {
+            // Basic iCal date parsing (format: YYYYMMDDTHHMMSSZ or YYYYMMDD)
+            if (dateString.length >= 8) {
+                const year = parseInt(dateString.substring(0, 4));
+                const month = parseInt(dateString.substring(4, 6)) - 1;
+                const day = parseInt(dateString.substring(6, 8));
+                
+                let hours = 0;
+                let minutes = 0;
+                let seconds = 0;
+                
+                // Check if time is included
+                if (dateString.length > 8 && dateString.charAt(8) === 'T') {
+                    hours = parseInt(dateString.substring(9, 11));
+                    minutes = parseInt(dateString.substring(11, 13));
+                    seconds = dateString.length > 13 ? parseInt(dateString.substring(13, 15)) : 0;
+                }
+                
+                return new Date(year, month, day, hours, minutes, seconds);
+            }
+            return null;
+        }
+        
+        // Fetch calendar events from iCal URL using proxy
         async function fetchCalendarEvents() {
             try {
                 clearError();
-                eventListEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                loadingIndicator.style.display = 'flex';
                 
-                const response = await fetch(ICAL_URL);
+                // Use proxy to bypass CORS
+                const proxyUrl = PROXY_URL + encodeURIComponent(ICAL_URL);
+                const response = await fetch(proxyUrl);
                 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch calendar data: ${response.status} ${response.statusText}`);
                 }
                 
                 const icalData = await response.text();
-                const events = await parseICalData(icalData);
+                const events = parseICalData(icalData);
                 
                 return events;
             } catch (error) {
                 console.error("Error fetching calendar data:", error);
-                showError(`Error: ${error.message}. Please check your internet connection.`);
-                return [];
+                throw new Error(`Failed to load calendar: ${error.message}`);
+            } finally {
+                loadingIndicator.style.display = 'none';
             }
         }
         
@@ -493,25 +528,27 @@
                 const eventStart = event.start;
                 const eventEnd = event.end;
                 
+                if (!eventStart) return false;
+                
                 // Check if event overlaps with the selected day
                 return (eventStart <= endOfDay && eventEnd >= startOfDay) || 
                        (eventStart >= startOfDay && eventStart <= endOfDay);
             });
         }
         
-        // Display events in the UI
+        // Display events in the UI with sequential colors
         function displayEvents(events) {
             eventListEl.innerHTML = '';
+            dailyEvents = []; // Reset daily events
             
             if (events.length === 0) {
                 eventListEl.innerHTML = `
                     <div class="no-events">
-                        <i class="fas fa-calendar-check" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <i class="fas fa-calendar-check"></i>
                         <h3>No events scheduled</h3>
                         <p>Enjoy your free time!</p>
                     </div>
                 `;
-                eventCountEl.textContent = "0 events";
                 return;
             }
             
@@ -519,22 +556,30 @@
             events.sort((a, b) => (a.start || 0) - (b.start || 0));
             
             // Create event elements
-            events.forEach(event => {
+            events.forEach((event, index) => {
                 const eventElement = document.createElement('li');
                 eventElement.className = 'event-item';
                 
+                // Assign color in sequence
+                const colorIndex = index % EVENT_COLORS.length;
+                const eventColor = EVENT_COLORS[colorIndex];
+                event.color = eventColor; // Store color with event
+                
+                dailyEvents.push(event); // Store for current event detection
+                
+                // Apply event color to left border
+                eventElement.style.borderLeftColor = eventColor;
+                
                 const startTime = formatTime(event.start);
                 const endTime = formatTime(event.end);
-                const duration = event.start && event.end ? formatDuration(event.start, event.end) : "";
                 
                 eventElement.innerHTML = `
                     <div class="event-time">
                         <div class="start">${startTime}</div>
-                        ${endTime && endTime !== startTime ? `<div class="end">${endTime}</div>` : ''}
-                        ${duration ? `<div class="duration">${duration}</div>` : ''}
+                        ${endTime ? `<div class="end">${endTime}</div>` : ''}
                     </div>
                     <div class="event-details">
-                        <div class="event-title">${event.summary || 'Untitled Event'}</div>
+                        <div class="event-title">${event.title || 'Untitled Event'}</div>
                         ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
                         ${event.location ? `
                         <div class="event-location">
@@ -546,8 +591,26 @@
                 
                 eventListEl.appendChild(eventElement);
             });
-            
-            eventCountEl.textContent = `${events.length} ${events.length === 1 ? 'event' : 'events'}`;
+        }
+        
+        // Show error message
+        function showError(message) {
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                    <div>
+                        <button class="retry-btn" id="retryBtn">Retry</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('retryBtn').addEventListener('click', () => {
+                loadEventsForDate(currentDate);
+            });
+        }
+        
+        // Clear error message
+        function clearError() {
+            errorContainer.innerHTML = '';
         }
         
         // Load and display events for the selected date
@@ -556,38 +619,22 @@
                 const allEvents = await fetchCalendarEvents();
                 const filteredEvents = filterEventsForDate(allEvents, date);
                 displayEvents(filteredEvents);
-                updateLastUpdated();
+                updateDateTime(); // Update immediately after loading
             } catch (error) {
                 console.error("Error loading events:", error);
-                showError(`Error loading events: ${error.message}`);
+                showError(error.message);
             }
         }
         
-        // Navigation handlers
-        prevDayBtn.addEventListener('click', () => {
-            currentDate.setDate(currentDate.getDate() - 1);
-            updateDisplayDate();
-            loadEventsForDate(currentDate);
-        });
-        
-        nextDayBtn.addEventListener('click', () => {
-            currentDate.setDate(currentDate.getDate() + 1);
-            updateDisplayDate();
-            loadEventsForDate(currentDate);
-        });
-        
-        todayBtn.addEventListener('click', () => {
-            currentDate = new Date();
-            updateDisplayDate();
-            loadEventsForDate(currentDate);
-        });
-        
         // Initialize the app
         function initApp() {
-            updateDisplayDate();
+            updateDateTime();
             loadEventsForDate(currentDate);
             
-            // Auto-refresh every 15 minutes
+            // Update time every second
+            setInterval(updateDateTime, 1000);
+            
+            // Auto-refresh events every 15 minutes
             setInterval(() => {
                 loadEventsForDate(currentDate);
             }, 15 * 60 * 1000);
